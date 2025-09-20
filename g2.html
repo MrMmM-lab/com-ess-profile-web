@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>กราฟข้อมูลลูกค้า</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap');
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f0f4f8;
+        }
+    </style>
+</head>
+<body class="p-8 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 md:p-12 rounded-2xl shadow-xl max-w-4xl w-full">
+        <h1 class="text-3xl md:text-4xl font-bold text-center mb-12 text-slate-800">ช่วงราคาและจำนวนลูกค้า</h1>
+        <div class="w-full">
+            <canvas id="myChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        const ctx = document.getElementById('myChart');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['฿800 - ฿2,080', '฿2,081 - ฿3,360', '฿3,361 - ฿4,640', '฿4,641 - ฿5,920', '฿5,921 - ฿7,200'],
+                datasets: [
+                    {
+                        label: 'จำนวนลูกค้า',
+                        data: [6, 7, 2, 3, 2],
+                        borderColor: 'rgba(59, 130, 246, 1)', // blue-500
+                        backgroundColor: 'rgba(59, 130, 246, 0.2)', // blue-500 with transparency
+                        borderWidth: 3,
+                        pointRadius: 6,
+                        pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                        pointBorderColor: '#fff',
+                        fill: true,
+                        tension: 0.4,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                return `จำนวนลูกค้า: ${context.raw} คน`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'จำนวนลูกค้า'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                if (Number.isInteger(value)) {
+                                    return value;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

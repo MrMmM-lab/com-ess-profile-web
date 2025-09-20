@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>กราฟสัดส่วนลูกค้าตามแพลตฟอร์ม</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js และ plugin สำหรับแสดงข้อมูลบนกราฟ -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap');
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f0f4f8;
+        }
+    </style>
+</head>
+<body class="p-8 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 md:p-12 rounded-2xl shadow-xl max-w-lg w-full">
+        <h1 class="text-2xl md:text-3xl font-bold text-center mb-12 text-slate-800">สัดส่วนลูกค้าตามแพลตฟอร์ม</h1>
+        <div class="w-full">
+            <canvas id="myPieChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // ลงทะเบียน plugin สำหรับการแสดงข้อมูลบนกราฟ
+        Chart.register(ChartDataLabels);
+
+        const ctx = document.getElementById('myPieChart');
+
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Shopee', 'Lazada', 'Facebook Shop', 'Amazon', 'JD Central'],
+                datasets: [{
+                    label: 'จำนวนลูกค้า',
+                    data: [7, 5, 3, 3, 2],
+                    backgroundColor: [
+                        'rgba(242, 97, 36, 0.8)',      // Shopee Orange
+                        'rgba(239, 68, 68, 0.8)',      // Lazada Red
+                        'rgba(59, 130, 246, 0.8)',     // Facebook Blue
+                        'rgba(255, 159, 64, 0.8)',     // Amazon Orange
+                        'rgba(192, 132, 252, 0.8)'     // JD Central Purple
+                    ],
+                    borderColor: '#fff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed;
+                                // แสดงทั้งจำนวนลูกค้าและเปอร์เซ็นต์ใน tooltip
+                                const total = context.dataset.data.reduce((sum, current) => sum + current, 0);
+                                const percentage = ((value / total) * 100).toFixed(1);
+                                return `${label}: ${value} คน (${percentage}%)`;
+                            }
+                        }
+                    },
+                    datalabels: {
+                        color: '#fff',
+                        formatter: (value, context) => {
+                            const total = context.dataset.data.reduce((sum, current) => sum + current, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return `${percentage}%`;
+                        },
+                        font: {
+                            weight: 'bold',
+                            size: 14
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

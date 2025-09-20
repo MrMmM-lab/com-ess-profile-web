@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>กราฟข้อมูลลูกค้า</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap');
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f0f4f8;
+        }
+    </style>
+</head>
+<body class="p-8 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 md:p-12 rounded-2xl shadow-xl max-w-4xl w-full">
+        <h1 class="text-3xl md:text-4xl font-bold text-center mb-8 text-slate-800">ช่วงราคาและจำนวนลูกค้า</h1>
+        <div class="relative h-96">
+            <canvas id="myChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chart.js Datalabels Plugin CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Data provided by the user
+            const data = {
+                labels: [
+                    '฿800 - ฿2,080',
+                    '฿2,081 - ฿3,360',
+                    '฿3,361 - ฿4,640',
+                    '฿4,641 - ฿5,920',
+                    '฿5,921 - ฿7,200'
+                ],
+                datasets: [{
+                    label: 'จำนวนลูกค้า',
+                    data: [6, 7, 2, 3, 2],
+                    backgroundColor: [
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 206, 86, 0.8)',
+                        'rgba(153, 102, 255, 0.8)',
+                        'rgba(255, 99, 132, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 99, 132, 1)'
+                    ],
+                    borderWidth: 1,
+                }, {
+                    type: 'line',
+                    label: 'แนวโน้ม',
+                    data: [6, 7, 2, 3, 2],
+                    borderColor: '#4b5563', // Dark gray for the line
+                    backgroundColor: '#4b5563',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: false,
+                    pointRadius: 6,
+                    pointBackgroundColor: '#4b5563',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                }]
+            };
+
+            // Chart configuration
+            const config = {
+                type: 'bar',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                stepSize: 1,
+                                color: '#6b7280'
+                            },
+                            title: {
+                                display: true,
+                                text: 'จำนวนลูกค้า',
+                                color: '#4b5563'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#6b7280'
+                            },
+                            title: {
+                                display: true,
+                                text: 'ช่วงราคา',
+                                color: '#4b5563'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false,
+                        },
+                        tooltip: {
+                            enabled: true,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y + ' คน';
+                                    }
+                                    return label;
+                                }
+                            }
+                        },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            color: '#4b5563',
+                            font: {
+                                weight: 'bold',
+                                size: 14,
+                            },
+                            formatter: (value, context) => {
+                                // Only show datalabel for the bar chart dataset
+                                if (context.datasetIndex === 0) {
+                                    return value + ' คน';
+                                }
+                                return null;
+                            }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            };
+
+            // Render the chart
+            const ctx = document.getElementById('myChart').getContext('2d');
+            new Chart(ctx, config);
+        });
+    </script>
+</body>
+</html>
