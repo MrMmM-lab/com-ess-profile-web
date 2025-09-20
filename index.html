@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>โปรไฟล์นักศึกษา</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Academic Blue & Grey -->
+    <!-- Application Structure Plan: ออกแบบเป็น Layout สองส่วนหลัก: แถบเมนูด้านข้าง (Sidebar) สำหรับนำทางไปยังส่วนต่างๆ และส่วนเนื้อหาหลักที่แสดงข้อมูลที่เกี่ยวข้อง โดยใช้ JavaScript เพื่อสลับการแสดงผลของแต่ละส่วน ทำให้หน้าเว็บดูเรียบง่ายและเป็นระเบียบ โครงสร้างนี้เหมาะกับการจัดการข้อมูลจำนวนมากในหน้าเดียว และช่วยให้ผู้ใช้เข้าถึงข้อมูลได้อย่างรวดเร็วและเป็นระบบ แทนที่จะต้องเลื่อนหน้าจอเป็นทางยาว -->
+    <!-- Visualization & Content Choices: 
+        - ข้อมูลส่วนตัว -> Goal: ให้ข้อมูลที่ชัดเจนและจัดการได้ง่าย -> Viz: การ์ดข้อมูลพร้อมปุ่ม "แก้ไข" -> Interaction: คลิกปุ่ม "แก้ไข" เพื่อแสดง pop-up สำหรับการอัปเดตข้อมูล -> Justification: แยกส่วนข้อมูลที่สำคัญและทำให้ผู้ใช้สามารถจัดการข้อมูลของตนเองได้ -> Method: HTML/Tailwind/JS
+        - ผลการเรียน -> Goal: แสดงความก้าวหน้าทางวิชาการ -> Viz: แผนภูมิแท่ง (Bar Chart) แสดงเกรดเฉลี่ยรายเทอม และตารางรายละเอียดวิชา -> Interaction: Tooltip บนแผนภูมิแสดงข้อมูลเกรด -> Justification: ช่วยให้ผู้ใช้เห็นภาพรวมผลการเรียนได้อย่างรวดเร็วและสามารถเจาะลึกรายละเอียดในตารางได้ -> Library: Chart.js/Canvas
+        - การชำระเงิน -> Goal: จัดการสถานะการเงิน -> Viz: รายการพร้อมสถานะสีที่แตกต่างกัน -> Interaction: ไม่มี -> Justification: แสดงข้อมูลที่สำคัญอย่างชัดเจนด้วยการใช้สีเพื่อบอกสถานะ -> Method: HTML/Tailwind
+        - การแจ้งเตือน -> Goal: ดึงดูดความสนใจไปที่ข้อมูลใหม่ -> Viz: ไอคอนกระดิ่งพร้อมตัวเลข -> Interaction: คลิกไอคอนเพื่อแสดง/ซ่อนรายการแจ้งเตือน -> Justification: เป็น UI ที่คุ้นเคยและใช้งานง่าย ทำให้ผู้ใช้ไม่พลาดการอัปเดตที่สำคัญ -> Method: HTML/Tailwind/JS
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f8fafc;
+        }
+        .main-bg { background-color: #003366; }
+        .main-color { color: #003366; }
+        .accent-bg { background-color: #1e40af; }
+        .accent-color { color: #1e40af; }
+        .sidebar {
+            transition: transform 0.3s ease-in-out;
+            transform: translateX(-100%);
+        }
+        .sidebar.active {
+            transform: translateX(0);
+        }
+        @media (min-width: 768px) {
+            .sidebar {
+                transform: translateX(0);
+            }
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            max-width: 800px;
+            margin: auto;
+        }
+    </style>
+</head>
+<body class="flex flex-col md:flex-row min-h-screen">
+    
+    <button id="menu-toggle" class="md:hidden fixed top-4 left-4 z-50 p-2 rounded-md bg-gray-200">
+        <span class="text-xl">☰</span>
+    </button>
+
+    <aside id="sidebar" class="sidebar md:relative fixed inset-y-0 left-0 w-64 main-bg p-6 z-40 md:z-auto md:w-80 flex flex-col justify-between shadow-xl">
+        <div>
+            <div class="flex items-center space-x-4 mb-8">
+                <img class="w-16 h-16 rounded-full border-2 border-white" src="https://placehold.co/100x100/e2e8f0/003366?text=🧑‍🎓" alt="รูปโปรไฟล์นักศึกษา">
+                <h2 class="text-white text-xl font-bold">Student Profile</h2>
+            </div>
+            <nav>
+                <ul>
+                    <li><button data-target="profile-section" class="nav-link w-full text-left py-3 px-4 rounded-lg text-white hover:bg-white hover:text-gray-900 transition-colors duration-200 mb-2">ข้อมูลส่วนตัว</button></li>
+                    <li><button data-target="academic-section" class="nav-link w-full text-left py-3 px-4 rounded-lg text-white hover:bg-white hover:text-gray-900 transition-colors duration-200 mb-2">ผลการเรียน</button></li>
+                    <li><button data-target="fees-section" class="nav-link w-full text-left py-3 px-4 rounded-lg text-white hover:bg-white hover:text-gray-900 transition-colors duration-200 mb-2">การชำระเงิน</button></li>
+                    <li><button data-target="activities-section" class="nav-link w-full text-left py-3 px-4 rounded-lg text-white hover:bg-white hover:text-gray-900 transition-colors duration-200 mb-2">กิจกรรม</button></li>
+                    <li><button data-target="settings-section" class="nav-link w-full text-left py-3 px-4 rounded-lg text-white hover:bg-white hover:text-gray-900 transition-colors duration-200 mb-2">การตั้งค่า</button></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="text-center text-gray-400 text-sm">
+            <p>ชีวิตนักศึกษาที่มีเป้าหมาย คือก้าวแรกสู่ความสำเร็จในอนาคต</p>
+        </div>
+    </aside>
+
+    <main class="flex-grow bg-white p-6 md:p-10 transition-all duration-300">
+        <header class="flex justify-between items-center mb-8 pb-4 border-b">
+            <h1 class="text-3xl font-bold main-color">มหาวิทยาลัยตัวอย่าง</h1>
+            <div class="relative">
+                <button id="notification-bell" class="relative text-2xl text-gray-600 hover:text-gray-900">🔔<span id="notification-count" class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">3</span></button>
+                <div id="notification-panel" class="hidden absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-lg z-50 p-4 border border-gray-200">
+                    <p class="font-bold text-gray-800 mb-2">การแจ้งเตือน</p>
+                    <ul>
+                        <li class="border-b last:border-b-0 py-2 text-sm text-gray-600">กำหนดการสอบกลางภาค</li>
+                        <li class="border-b last:border-b-0 py-2 text-sm text-gray-600">ผลการเรียนวิชาคณิตศาสตร์ประกาศแล้ว</li>
+                        <li class="py-2 text-sm text-gray-600">แจ้งเตือนชำระค่าเทอม</li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <!-- Profile Section -->
+        <section id="profile-section" class="content-section">
+            <h2 class="text-2xl font-bold main-color mb-6">ข้อมูลส่วนตัว</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-6 rounded-lg">
+                <div class="flex items-center space-x-4 mb-4 md:col-span-2">
+                    <img class="w-24 h-24 rounded-full border-4 border-white shadow-md" src="https://scontent-bkk1-2.xx.fbcdn.net/v/t39.30808-6/453899395_3822824438000223_6529456951588116975_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=6ee11a&_nc_aid=0&_nc_eui2=AeFNm7MpE-oYVbVWVip2j9tbMMSfmkhMuRswxJ-aSEy5G5H6qaaCN6msdYK7_R_TyzrE1E4QrVD0mQm2Wx--ekJP&_nc_ohc=1vgZvfd98KkQ7kNvwG5nF38&_nc_oc=AdkLBEOL-eRuDF-yRQ829n4s4Q_9mv5jpRsWGKZAY_DusWpTJ0Cydp3ZuWmoQ4bZ9QE&_nc_zt=23&_nc_ht=scontent-bkk1-2.xx&_nc_gid=PhIZfvI6l5GmlTEhLAJdFg&oh=00_AfYuDYSnUSUH-_vjWBS-GCiN5HkNBiLChbEh_TvUMLKVzg&oe=68D42422" alt="รูปโปรไฟล์">
+                    <div>
+                        <p class="text-xl font-bold">ชื่อ-นามสกุล: นาย วรปรัชญ์ วรปัญญา</p>
+                        <p class="text-gray-600">มหาวิทยาลัย: มหาวิทยาลัยกาฬสินธุ์</p>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <p class="font-bold main-color">คณะ/สาขา:</p>
+                        <p>วิศวกรรมศาสตร์ / คอมพิวเตอร์</p>
+                    </div>
+                    <div>
+                        <p class="font-bold main-color">ปีการศึกษา:</p>
+                        <p>2568 (ปีที่ 3)</p>
+                    </div>
+                    <div>
+                        <p class="font-bold main-color">ความสนใจ:</p>
+                        <p>เทคโนโลยี, ดนตรี, เครื่องยนต์,</p>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <p class="font-bold main-color">อีเมล:</p>
+                        <p>681540006001-3@ksu.ac.th</p>
+                    </div>
+                    <div>
+                        <p class="font-bold main-color">เบอร์โทรศัพท์:</p>
+                        <p>080-136-0815</p>
+                    </div>
+                    <div>
+                        <p class="font-bold main-color">สถานะการแจ้งเตือน:</p>
+                        <p class="text-green-600 font-bold">เปิดใช้งาน (SMS/อีเมล)</p>
+                    </div>
+                </div>
+                <div class="md:col-span-2 mt-4">
+                    <p class="font-bold main-color">คติประจำใจ:</p>
+                    <blockquote class="italic text-gray-700 mt-2 pl-4 border-l-4 border-blue-200">
+                        “วันนี้ไม่ได้ วันหน้าเอาใหม่”
+                    </blockquote>
+                </div>
+            </div>
+            <button id="edit-profile-btn" class="mt-6 px-6 py-2 rounded-lg text-white accent-bg hover:opacity-90 transition-opacity duration-200">แก้ไขข้อมูล</button>
+            <div id="edit-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <div class="bg-white rounded-lg p-8 w-full max-w-md shadow-2xl">
+                    <h3 class="text-xl font-bold main-color mb-4">แก้ไขข้อมูลส่วนตัว</h3>
+                    <p class="text-gray-700">ฟังก์ชันนี้จะเปิดแบบฟอร์มให้คุณแก้ไขข้อมูลส่วนตัวได้</p>
+                    <button id="close-modal-btn" class="mt-6 px-6 py-2 rounded-lg text-white main-bg hover:opacity-90 transition-opacity duration-200">ปิด</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Academic Section -->
+        <section id="academic-section" class="content-section hidden">
+            <h2 class="text-2xl font-bold main-color mb-6">ผลการเรียนและวิชาที่ลงทะเบียน</h2>
+            <div class="bg-gray-50 p-6 rounded-lg mb-8">
+                <p class="text-lg text-gray-700 mb-4">กราฟแสดงเกรดเฉลี่ยรายเทอม</p>
+                <div class="chart-container">
+                    <canvas id="gpaChart"></canvas>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-lg border border-gray-200">
+                <h3 class="text-xl font-bold main-color mb-4">ตารางผลการเรียนประจำภาคเรียนล่าสุด</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left table-auto">
+                        <thead>
+                            <tr class="bg-blue-50 main-color">
+                                <th class="p-3 font-bold">รหัสวิชา</th>
+                                <th class="p-3 font-bold">ชื่อวิชา</th>
+                                <th class="p-3 font-bold">หน่วยกิต</th>
+                                <th class="p-3 font-bold">เกรด</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b hover:bg-gray-100">
+                                <td class="p-3">CS101</td>
+                                <td class="p-3">การเขียนโปรแกรมเบื้องต้น</td>
+                                <td class="p-3">3</td>
+                                <td class="p-3">A</td>
+                            </tr>
+                            <tr class="border-b hover:bg-gray-100">
+                                <td class="p-3">MA202</td>
+                                <td class="p-3">แคลคูลัส 2</td>
+                                <td class="p-3">3</td>
+                                <td class="p-3">B+</td>
+                            </tr>
+                            <tr class="border-b hover:bg-gray-100">
+                                <td class="p-3">PH110</td>
+                                <td class="p-3">ฟิสิกส์ทั่วไป</td>
+                                <td class="p-3">4</td>
+                                <td class="p-3">A-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Fees Section -->
+        <section id="fees-section" class="content-section hidden">
+            <h2 class="text-2xl font-bold main-color mb-6">การชำระเงินค่าเล่าเรียน</h2>
+            <p class="text-lg text-gray-700 mb-6">ภาพรวมสถานะการชำระเงินของคุณ</p>
+            <div id="payment-list" class="space-y-4"></div>
+            <button class="mt-6 px-6 py-2 rounded-lg text-white bg-green-600 hover:bg-green-700 transition-colors duration-200">ชำระเงินออนไลน์</button>
+        </section>
+
+        <!-- Activities Section -->
+        <section id="activities-section" class="content-section hidden">
+            <h2 class="text-2xl font-bold main-color mb-6">กิจกรรมเสริมหลักสูตร</h2>
+            <ul class="space-y-4">
+                <li class="bg-gray-50 p-4 rounded-lg shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="font-bold main-color">ชมรมหุ่นยนต์</p>
+                            <p class="text-sm text-gray-600">เข้าร่วม: 2567 - ปัจจุบัน</p>
+                        </div>
+                        <button class="px-4 py-1 text-sm rounded-full bg-blue-100 text-blue-600 font-medium">ดูรายละเอียด</button>
+                    </div>
+                </li>
+                <li class="bg-gray-50 p-4 rounded-lg shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="font-bold main-color">โครงการอาสาพัฒนาชุมชน</p>
+                            <p class="text-sm text-gray-600">เข้าร่วม: 2567</p>
+                        </div>
+                        <button class="px-4 py-1 text-sm rounded-full bg-blue-100 text-blue-600 font-medium">ดูรายละเอียด</button>
+                    </div>
+                </li>
+                <li class="bg-gray-50 p-4 rounded-lg shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="font-bold main-color">โครงการแลกเปลี่ยนนักศึกษา</p>
+                            <p class="text-sm text-gray-600">สถานะ: สนใจเข้าร่วม</p>
+                        </div>
+                        <button class="px-4 py-1 text-sm rounded-full bg-green-100 text-green-600 font-medium">สมัครเข้าร่วม</button>
+                    </div>
+                </li>
+            </ul>
+        </section>
+
+        <!-- Settings Section -->
+        <section id="settings-section" class="content-section hidden">
+            <h2 class="text-2xl font-bold main-color mb-6">การตั้งค่า</h2>
+            <div class="bg-gray-50 p-6 rounded-lg">
+                <div class="flex items-center justify-between mb-4">
+                    <p class="text-lg font-medium">สถานะการรับแจ้งเตือนทางอีเมล</p>
+                    <div class="flex items-center">
+                        <input type="checkbox" id="email-notif" class="h-5 w-5 text-accent-color rounded border-gray-300">
+                        <label for="email-notif" class="ml-2 text-sm text-gray-700">เปิด</label>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between mb-4">
+                    <p class="text-lg font-medium">เปลี่ยนรหัสผ่าน</p>
+                    <button class="px-4 py-2 rounded-lg text-white main-bg">เปลี่ยนรหัสผ่าน</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const contentSections = document.querySelectorAll('.content-section');
+            const menuToggle = document.getElementById('menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const notificationBell = document.getElementById('notification-bell');
+            const notificationPanel = document.getElementById('notification-panel');
+            const editProfileBtn = document.getElementById('edit-profile-btn');
+            const editModal = document.getElementById('edit-modal');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+            
+            const gpaData = {
+                labels: ['เทอม 1/67', 'เทอม 2/67', 'เทอม 1/68'],
+                datasets: [{
+                    label: 'เกรดเฉลี่ย (GPA)',
+                    data: [3.50, 3.75, 3.82],
+                    backgroundColor: 'rgba(0, 51, 102, 0.8)',
+                    borderColor: 'rgba(0, 51, 102, 1)',
+                    borderWidth: 1
+                }]
+            };
+
+            const gpaChartConfig = {
+                type: 'bar',
+                data: gpaData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 4.0,
+                            title: {
+                                display: true,
+                                text: 'GPA'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            };
+            
+            const gpaCtx = document.getElementById('gpaChart');
+            if(gpaCtx) {
+                 new Chart(gpaCtx, gpaChartConfig);
+            }
+
+            const paymentData = [
+                { title: 'ค่าเทอม 1/2568', status: 'ชำระแล้ว', color: 'bg-green-500' },
+                { title: 'ค่าหนังสือ', status: 'ยังไม่ชำระ', color: 'bg-red-500' },
+                { title: 'ค่าหอพัก', status: 'ชำระแล้ว', color: 'bg-green-500' }
+            ];
+
+            const paymentList = document.getElementById('payment-list');
+            if(paymentList) {
+                paymentData.forEach(item => {
+                    const paymentItem = document.createElement('div');
+                    paymentItem.className = 'flex items-center justify-between p-4 rounded-lg bg-gray-50 shadow-sm';
+                    paymentItem.innerHTML = `
+                        <p class="font-bold main-color">${item.title}</p>
+                        <span class="text-sm font-semibold text-white px-3 py-1 rounded-full ${item.color}">${item.status}</span>
+                    `;
+                    paymentList.appendChild(paymentItem);
+                });
+            }
+
+            const showSection = (targetId) => {
+                contentSections.forEach(section => {
+                    section.classList.add('hidden');
+                });
+                document.getElementById(targetId).classList.remove('hidden');
+                
+                navLinks.forEach(link => {
+                    link.classList.remove('main-bg', 'text-white');
+                    link.classList.add('text-gray-900', 'bg-white');
+                });
+                
+                const currentLink = document.querySelector(`[data-target="${targetId}"]`);
+                if(currentLink) {
+                    currentLink.classList.remove('text-gray-900', 'bg-white');
+                    currentLink.classList.add('main-bg', 'text-white');
+                }
+            };
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    const targetId = e.currentTarget.dataset.target;
+                    showSection(targetId);
+                    if (window.innerWidth < 768) {
+                        sidebar.classList.remove('active');
+                    }
+                });
+            });
+
+            menuToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('active');
+            });
+            
+            notificationBell.addEventListener('click', (e) => {
+                e.stopPropagation();
+                notificationPanel.classList.toggle('hidden');
+            });
+            
+            document.addEventListener('click', (e) => {
+                if (!notificationPanel.contains(e.target) && !notificationBell.contains(e.target)) {
+                    notificationPanel.classList.add('hidden');
+                }
+            });
+
+            editProfileBtn.addEventListener('click', () => {
+                editModal.classList.remove('hidden');
+            });
+
+            closeModalBtn.addEventListener('click', () => {
+                editModal.classList.add('hidden');
+            });
+
+            showSection('profile-section');
+        });
+    </script>
+</body>
+</html>
